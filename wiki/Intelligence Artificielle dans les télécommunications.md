@@ -8,7 +8,7 @@
 * **Thème de la présentation :** Intelligence Artificielle et ses applications technologiques
 * **Sujet principal :** Introduction à l'IA, ses fondements, ses types, et applications pratiques dans les télécommunications et autres secteurs
 * **Lieu / Cadre :** Conférence (Journée de veille 2024)
-* **Présentateur / Hôte / invités / Intervenants  :** Dr-Ing Farah Chenchah Amamou -Dr-Ing en Informatique Industrielle (INSAT), PhD en Traitement du signal, Directrice des programmes IA à Groupe IHE, CEO DEEP CORTEX, Instructrice "Artificial Intelligence" Huawei, Certifiée "Artificial Intelligence Analyst" IBM
+* **Présentateur / Hôte / invités / Intervenants  :** Farah Chenchah Amamou -Dr-Ing en Informatique Industrielle (INSAT), PhD en Traitement du signal, Directrice des programmes IA à Groupe IHE, CEO DEEP CORTEX, Instructrice "Artificial Intelligence" Huawei, Certifiée "Artificial Intelligence Analyst" IBM
 
 
 ---

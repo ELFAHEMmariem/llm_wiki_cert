@@ -11,7 +11,6 @@ load_dotenv(override=True)
 class WikiQueryEngine:
     # --- PATTERNS REGEX GLOBAUX ---
 
-    # Détection des entêtes/balises de rôle pour le nettoyage et l'extraction
     PAT_ROLE_PREFIX = re.compile(
         r"^\s*[\*\-]*\s*\**\s*("
         r"Présentateur\s*/\s*Hôte\s*/\s*invités\s*/\s*Intervenants|"
@@ -109,9 +108,6 @@ class WikiQueryEngine:
         ]
         if any(w in nom_lower for w in mots_parasites):
             return False
-
-        if "farah" in nom_lower or "slim" in nom_lower:
-            return True
 
         if re.search(r"\d{2,}[\/\-_]\d+|\b[A-Z0-9]{3,}\b.*?\d+", nom):
             return False
@@ -214,10 +210,6 @@ class WikiQueryEngine:
     # --- EXTRACTION SPECIFIQUE DU PRESENTATEUR PAR BALISE ---
 
     def _extraire_presentateur_par_balise(self, texte_md: str) -> Optional[str]:
-        """
-        Extrait la ligne/valeur qui se trouve directement après les balises de rôles.
-        Restitue le Nom, Fonction et Institution.
-        """
         pattern = re.compile(
             r"\*\*\s*(Présentateur\s*/\s*Hôte(?:\s*/\s*invités\s*/\s*Intervenants)?)\s*:\s*\*\*\s*(.+)",
             re.IGNORECASE,
@@ -256,11 +248,13 @@ class WikiQueryEngine:
             ):
                 return None
 
-            if not self._est_nom_personne_valide(nom_clean):
+            nom_sans_titre = self._nettoyer_titre_academique(nom_clean)
+
+            if not self._est_nom_personne_valide(nom_sans_titre):
                 return None
 
             return {
-                "nom": self._nettoyer_titre_academique(nom_clean),
+                "nom": nom_sans_titre,
                 "institution": (
                     self._nettoyer_chaine(institution)
                     if institution and institution != "—"
@@ -284,17 +278,10 @@ class WikiQueryEngine:
         if not clean or "non précisé" in clean.lower():
             return None
 
-        if "farah" in clean.lower():
-            return {
-                "nom": "Farah Chenchah Amamou",
-                "institution": "INSAT / Groupe IHE",
-                "fonction": "Directrice des programmes IA & CEO DEEP CORTEX",
-                "email": "Non précisé",
-            }
-
         nom, fonction, institution = clean, "Non précisée", "Non précisée"
 
-        parts = re.split(r"\s+[—–-]\s+", clean, maxsplit=1)
+        # Regex adaptée pour découper au premier tiret/cadratin, même sans espace avant
+        parts = re.split(r"\s*[—–-]\s*", clean, maxsplit=1)
         if len(parts) == 2:
             nom = self._nettoyer_chaine(parts[0])
             reste = parts[1].strip()
@@ -318,11 +305,13 @@ class WikiQueryEngine:
             else:
                 fonction = self._nettoyer_chaine(reste)
 
-        if not self._est_nom_personne_valide(nom):
+        nom_clean = self._nettoyer_titre_academique(nom)
+
+        if not self._est_nom_personne_valide(nom_clean):
             return None
 
         return {
-            "nom": self._nettoyer_titre_academique(nom),
+            "nom": nom_clean,
             "institution": institution if institution else "Non précisée",
             "fonction": fonction if fonction else "Non précisée",
             "email": "Non précisé",
@@ -371,6 +360,7 @@ class WikiQueryEngine:
                 for line in lignes:
                     line_str = line.strip()
 
+                    # 1. Extraction depuis tableau Markdown
                     if line_str.startswith("|"):
                         moteur_sous_liste = False
                         res_tab = self._extraire_depuis_tableau_markdown(
@@ -388,21 +378,7 @@ class WikiQueryEngine:
 
                     line_lower = line_str.lower()
 
-                    if "farah" in line_lower:
-                        p_farah = {
-                            "nom": "Farah Chenchah Amamou",
-                            "institution": "INSAT / Groupe IHE",
-                            "fonction": "Directrice des programmes IA & CEO DEEP CORTEX",
-                            "email": "Non précisé",
-                        }
-                        if not any(
-                            "farah" in p["nom"].lower() for p in liste_personnes
-                        ):
-                            liste_personnes.append(p_farah)
-                            if md_file.name not in sources:
-                                sources.append(md_file.name)
-                        continue
-
+                    # 2. Détection par mot-clé de rôle (ex: Présentateur / Hôte...)
                     if any(kw in line_lower for kw in mots_cles):
                         moteur_sous_liste = True
                         if ":" in line_str:
@@ -418,6 +394,7 @@ class WikiQueryEngine:
                                         sources.append(md_file.name)
                         continue
 
+                    # 3. Traitement des puces sous la section
                     if moteur_sous_liste:
                         if line_str.startswith(
                             ("*", "-")
