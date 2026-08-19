@@ -1,0 +1,14 @@
+# Données brutes et fiches Markdown (Non partagées)
+raw/
+wiki/
+
+# Base de données vectorielle locale
+chroma_db/
+
+# Clés d'API et variables d'environnement
+.env
+
+# Fichiers temporaires Python
+__pycache__/
+*.pyc
+.venv/
