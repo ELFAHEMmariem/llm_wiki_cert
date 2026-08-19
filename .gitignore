@@ -1,14 +1,11 @@
-# Données brutes et fiches Markdown (Non partagées)
+# Exclure les données lourdes brutes et la DB vectorielle
 raw/
-wiki/
-
-# Base de données vectorielle locale
 chroma_db/
 
-# Clés d'API et variables d'environnement
+# Exclure la clé API
 .env
 
-# Fichiers temporaires Python
+# Exclure les fichiers temporaires
 __pycache__/
 *.pyc
 .venv/

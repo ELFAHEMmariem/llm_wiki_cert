@@ -1,0 +1,210 @@
+{
+  "main": {
+    "id": "93f7f4006ba5917b",
+    "type": "split",
+    "children": [
+      {
+        "id": "330b150a6854f882",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "aef711ac9fe9d554",
+            "type": "leaf",
+            "state": {
+              "type": "graph",
+              "state": {},
+              "icon": "lucide-git-fork",
+              "title": "Vue graphique"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "6c0ed5d225e3bf59",
+    "type": "split",
+    "children": [
+      {
+        "id": "bc2f0263eec105f1",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "bd8ba0e012f83004",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Explorateur de fichiers"
+            }
+          },
+          {
+            "id": "a71a270c7964238c",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Rechercher"
+            }
+          },
+          {
+            "id": "b775b8561500b937",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Signets"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "6671bd3c19e3d505",
+    "type": "split",
+    "children": [
+      {
+        "id": "041148e87e65dcd6",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "b34fd08448c71ca2",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Rétroliens"
+            }
+          },
+          {
+            "id": "6981840629a9e299",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Liens sortants"
+            }
+          },
+          {
+            "id": "0830595cd28fac5e",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Mots-clés"
+            }
+          },
+          {
+            "id": "77199766f4b7aad4",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "Toutes les propriétés"
+            }
+          },
+          {
+            "id": "1d66d27896951f8d",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Plan"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Ouvrir le sélecteur rapide": false,
+      "graph:Ouvrir la vue graphique": false,
+      "canvas:Créer une nouvelle toile": false,
+      "daily-notes:Ouvrir la note quotidienne": false,
+      "templates:Insérer le modèle": false,
+      "command-palette:Ouvrir la palette de commandes": false,
+      "bases:Créer une nouvelle base": false
+    }
+  },
+  "active": "aef711ac9fe9d554",
+  "lastOpenFiles": [
+    "feuille de présence journée 17-06-2026 14.21.md",
+    "La technologie Blockchain.md",
+    "Webinaire.md",
+    "Les Technologies quantiques.md",
+    "YET - CERT V2.md",
+    "Green_DC_AH_Sent.md",
+    "IA in Project Management.md",
+    "Démystification du quantique.md",
+    "12 Mars 2026.md",
+    "Workshop_Orange_EE.md",
+    "Workshop Spirent CERT v2.0.md",
+    "Workshop décarbonation o2m.md",
+    "Workshop décarbonation CERT.md",
+    "Workshop AI PMI CERT v1.1.md",
+    "Présentation Cert EC_V2 sent.md",
+    "Liste_des_invites.md",
+    "Mobile Network Benchmarking for 5G (1).md",
+    "Indoor presentation - CERT - 11June2025.md",
+    "20250924_CERT-Tunisia_Landslide-Overview.md",
+    "Workshop Green ICT.md",
+    "Smart PV.md",
+    "Slide Intro CERT & Huawei Workshop.md",
+    "OpenRAN.md",
+    "MEA-T Projects references.md",
+    "Intro applications de l’IA en Telco.md",
+    "Intelligence Artificielle dans les télécommunications.md"
+  ]
+}
