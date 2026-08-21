@@ -8,14 +8,13 @@
 * **Thème de la présentation :** Technologie quantique et ses applications industrielles
 * **Sujet principal :** Découverte des principes fondamentaux de l'informatique quantique, des cas d'usage concrets et des écosystèmes régionaux dédiés
 * **Lieu / Cadre :** Webinaire en ligne (distanciel)
-* **Présentateur / Hôte :** Marc Latening — Coordinateur scientifique chez Grantinove
-* **Liste des invités / Intervenants :**
-  * **Olivier Zrati** — Head of Quantum Computing France et Global Quantum Computing Technology Advisor chez Eviden (Atos)
-  * **Charles de Seprad** — Membre du groupe Digital Technique Olefis, en charge du quantique pour ce partenaire
-  * **Anna de Mara** — Directrice exécutive du projet Access (Centre Européen des Sciences Quantiques, Université de Strasbourg)
-  * **Christophe Kuto** — Directeur du laboratoire de photonique quantique à l'Université de Technologie de Troyes (UTT)
-  * **Frédéric Mogher** — Génie de recherche spécialisé dans la thématique quantique à l'Urkac et l'Université de Rhin
-  * **Christophe Kuto** — Directeur du laboratoire de photonique quantique à l'UTT
+* **Présentateur / Hôte :**Marc platini — Coordinateur scientifique chez Grantinove / Olivier Hess— Head of Quantum Computing France et Global Quantum Computing Technology Advisor chez Eviden (Atos) / Charles Praud — Membre du groupe Digital Technique Olefis, en charge du quantique pour ce partenaire / Anna Helman — Directrice exécutive du projet Access (Centre Européen des Sciences Quantiques, Université de Strasbourg) / Christophe couteau — Directeur du laboratoire de photonique quantique à l'Université de Technologie de Troyes (UTT) / Frédéric Maugiere — Ingénieur de recherche URCA
+**Présentateur / Hôte / invités / Intervenants 
+   **Olivier Hess** — Head of Quantum Computing France et Global Quantum Computing Technology Advisor chez Eviden (Atos)
+   **Charles Praud ** — Membre du groupe Digital Technique Olefis, en charge du quantique pour ce partenaire
+   **Anna Helman** — Directrice exécutive du projet Access (Centre Européen des Sciences Quantiques, Université de Strasbourg)
+   **Christophe couteau** — Directeur du laboratoire de photonique quantique à l'Université de Technologie de Troyes (UTT)
+   **Frédéric Maugiere** — Ingénieur de recherche URCA
 
 ---
 

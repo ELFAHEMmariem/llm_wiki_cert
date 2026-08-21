@@ -15,7 +15,8 @@ class WikiQueryEngine:
         r"^\s*[\*\-]*\s*\**\s*("
         r"Présentateur\s*/\s*Hôte\s*/\s*invités\s*/\s*Intervenants|"
         r"Présentateur\s*/\s*Hôte\s*/\s*invités|"
-        r"Présentateur\s*/\s*Hôte|Intervenants|Présentateur|Hôte|Speaker|Present\s+Dns"
+        r"Présentateur\s*/\s*Hôte|Intervenants|Présentateur|Hôte|Speaker|Present\s+Dns|"
+        r"Présentateur\s*/\s*Expert"
         r")\s*\**\s*:\s*\**",
         flags=re.IGNORECASE,
     )
@@ -52,14 +53,22 @@ class WikiQueryEngine:
     # --- NETTOYAGE ET PARSING DE TEXTE ---
 
     def _nettoyer_chaine(self, texte: str) -> str:
-        """Supprime le balisage parasite, émojis et espaces superflus."""
+        """Supprime le balisage parasite, émojis, parenthèses orphelines et espaces superflus."""
         if not texte:
             return ""
 
         texte = re.sub(r"[📄ℹ️🎯#]", "", texte)
         texte = re.sub(r"^[\*\-\s]+", "", texte)
         texte = re.sub(r"[\*\-\s]+$", "", texte)
-        return texte.replace("**", "").replace("`", "").strip()
+        texte = texte.replace("**", "").replace("`", "").strip()
+
+        # Correction des parenthèses déséquilibrées/orphelines
+        if texte.count(")") > texte.count("("):
+            texte = texte.replace(")", "")
+        elif texte.count("(") > texte.count(")"):
+            texte = texte.replace("(", "")
+
+        return texte.strip()
 
     def _nettoyer_prefixe_role(self, texte: str) -> str:
         """Supprime rigoureusement tous les préfixes de rôles et étiquettes parasites."""
@@ -93,7 +102,7 @@ class WikiQueryEngine:
         nom_lower = nom.lower().strip()
 
         mots_parasites = [
-            "nom du fichier",
+           "nom du fichier",
             "source :",
             "webinaire.url",
             "http",
@@ -105,6 +114,15 @@ class WikiQueryEngine:
             "09-fgb",
             "15/221",
             "ueny",
+            "chaîne youtube",
+            "chaine youtube",
+            "youtube",
+            "information à récupérer",
+            "west africa",
+            "levant",
+            "dell technologies",
+            "temps forts",
+            "temps fort",
         ]
         if any(w in nom_lower for w in mots_parasites):
             return False
@@ -136,6 +154,22 @@ class WikiQueryEngine:
             "besoin",
             "les machines",
             "le quantique",
+            "rôle",
+            "role",
+            "fonction",
+            "organisation",
+            "entrées",
+            "sorties",
+            "objectif",
+            "statut",
+            "points clés",
+            "présentateur",
+            "presentateur",
+            "hôte",
+            "hote",
+            "expert",
+            "chimie",
+            "physique",
         ]
         if any(m in nom_lower for m in mots_interdits):
             return False
@@ -146,7 +180,6 @@ class WikiQueryEngine:
         return True
 
     def _normaliser_date(self, texte_date: str) -> str:
-        """Extrait et formate la date sous un format textuel uniforme pour la recherche."""
         m = re.search(
             r"(\d{1,2})[\/\-_\s]+(\d{1,2})[\/\-_\s]+(\d{2,4})", texte_date
         )
@@ -207,8 +240,6 @@ class WikiQueryEngine:
         ]
         return " ".join(paragraphes[:2]) if paragraphes else texte_md
 
-    # --- EXTRACTION SPECIFIQUE DU PRESENTATEUR PAR BALISE ---
-
     def _extraire_presentateur_par_balise(self, texte_md: str) -> Optional[str]:
         pattern = re.compile(
             r"\*\*\s*(Présentateur\s*/\s*Hôte(?:\s*/\s*invités\s*/\s*Intervenants)?)\s*:\s*\*\*\s*(.+)",
@@ -226,11 +257,9 @@ class WikiQueryEngine:
                     return valeur_propre
         return None
 
-    # --- PARTIE INVITÉS ET TABLEAU ---
-
     def _extraire_depuis_tableau_markdown(
         self, ligne: str
-    ) -> Optional[Dict[str, str]]:
+    ) -> Optional[List[Dict[str, str]]]:
         colonnes = [c.strip() for c in ligne.split("|")]
         if len(colonnes) >= 5:
             nom = colonnes[2] if len(colonnes) > 2 else ""
@@ -253,7 +282,7 @@ class WikiQueryEngine:
             if not self._est_nom_personne_valide(nom_sans_titre):
                 return None
 
-            return {
+            return [{
                 "nom": nom_sans_titre,
                 "institution": (
                     self._nettoyer_chaine(institution)
@@ -268,54 +297,79 @@ class WikiQueryEngine:
                 "email": (
                     email.strip() if email and email != "—" else "Non précisé"
                 ),
-            }
+            }]
         return None
 
-    def _analyser_ligne_personne(self, texte: str) -> Optional[Dict[str, str]]:
+    def _analyser_ligne_personne(self, texte: str) -> List[Dict[str, str]]:
         clean = self._nettoyer_chaine(texte)
         clean = self._nettoyer_prefixe_role(clean)
 
         if not clean or "non précisé" in clean.lower():
-            return None
+            return []
 
-        nom, fonction, institution = clean, "Non précisée", "Non précisée"
+        resultats = []
+        
+        # 1. Découpage explicite par slash / pour séparer chaque intervenant
+        segments_personnes = [s.strip() for s in clean.split("/") if s.strip()]
 
-        # Regex adaptée pour découper au premier tiret/cadratin, même sans espace avant
-        parts = re.split(r"\s*[—–-]\s*", clean, maxsplit=1)
-        if len(parts) == 2:
-            nom = self._nettoyer_chaine(parts[0])
-            reste = parts[1].strip()
+        for segment_brut in segments_personnes:
+            # 2. Découpage sur chevauchement complexe de personnes agglomérées
+            segments = re.split(
+                r"(?<=\))\s*(?=[A-Z])|(?<=\b[a-z])\s+(?=[A-Z][a-z]+\s+[—–-])",
+                segment_brut,
+            )
 
-            if " chez " in reste.lower():
-                f_parts = re.split(
-                    r"\bchez\b", reste, flags=re.IGNORECASE, maxsplit=1
+            for segment in segments:
+                segment_clean = self._nettoyer_chaine(segment)
+                if not segment_clean:
+                    continue
+
+                nom, fonction, institution = (
+                    segment_clean,
+                    "Non précisée",
+                    "Non précisée",
                 )
-                fonction = self._nettoyer_chaine(f_parts[0])
-                institution = self._nettoyer_chaine(f_parts[1])
-            elif " at " in reste.lower():
-                f_parts = re.split(
-                    r"\bat\b", reste, flags=re.IGNORECASE, maxsplit=1
-                )
-                fonction = self._nettoyer_chaine(f_parts[0])
-                institution = self._nettoyer_chaine(f_parts[1])
-            elif "," in reste:
-                f_parts = reste.split(",", 1)
-                fonction = self._nettoyer_chaine(f_parts[0])
-                institution = self._nettoyer_chaine(f_parts[1])
-            else:
-                fonction = self._nettoyer_chaine(reste)
 
-        nom_clean = self._nettoyer_titre_academique(nom)
+                # Extraction du nom et du rôle/institution séparés par tiret
+                parts = re.split(r"\s*[—–-]\s*", segment_clean, maxsplit=1)
 
-        if not self._est_nom_personne_valide(nom_clean):
-            return None
+                if len(parts) == 2:
+                    nom = self._nettoyer_chaine(parts[0])
+                    reste = parts[1].strip()
 
-        return {
-            "nom": nom_clean,
-            "institution": institution if institution else "Non précisée",
-            "fonction": fonction if fonction else "Non précisée",
-            "email": "Non précisé",
-        }
+                    # Détection Organisme / Fonction (ex: "chez", "at", virgule)
+                    if " chez " in reste.lower():
+                        f_parts = re.split(
+                            r"\bchez\b", reste, flags=re.IGNORECASE, maxsplit=1
+                        )
+                        fonction = self._nettoyer_chaine(f_parts[0])
+                        institution = self._nettoyer_chaine(f_parts[1])
+                    elif " at " in reste.lower():
+                        f_parts = re.split(
+                            r"\bat\b", reste, flags=re.IGNORECASE, maxsplit=1
+                        )
+                        fonction = self._nettoyer_chaine(f_parts[0])
+                        institution = self._nettoyer_chaine(f_parts[1])
+                    elif "," in reste:
+                        f_parts = reste.split(",", 1)
+                        fonction = self._nettoyer_chaine(f_parts[0])
+                        institution = self._nettoyer_chaine(f_parts[1])
+                    else:
+                        fonction = self._nettoyer_chaine(reste)
+
+                nom_clean = self._nettoyer_titre_academique(nom)
+
+                if self._est_nom_personne_valide(nom_clean):
+                    resultats.append({
+                        "nom": nom_clean,
+                        "institution": (
+                            institution if institution else "Non précisée"
+                        ),
+                        "fonction": fonction if fonction else "Non précisée",
+                        "email": "Non précisé",
+                    })
+
+        return resultats
 
     def _extraire_invites(
         self,
@@ -349,9 +403,13 @@ class WikiQueryEngine:
                 if not content:
                     continue
 
-                if pattern_date and not re.search(
-                    pattern_date, content, re.IGNORECASE
-                ) and not re.search(pattern_date, md_file.name, re.IGNORECASE):
+                if (
+                    pattern_date
+                    and not re.search(pattern_date, content, re.IGNORECASE)
+                    and not re.search(
+                        pattern_date, md_file.name, re.IGNORECASE
+                    )
+                ):
                     continue
 
                 lignes = content.splitlines()
@@ -360,31 +418,48 @@ class WikiQueryEngine:
                 for line in lignes:
                     line_str = line.strip()
 
-                    # 1. Extraction depuis tableau Markdown
                     if line_str.startswith("|"):
                         moteur_sous_liste = False
-                        res_tab = self._extraire_depuis_tableau_markdown(
+                        res_tab_list = self._extraire_depuis_tableau_markdown(
                             line_str
                         )
-                        if res_tab and res_tab["nom"]:
-                            if not any(
-                                p["nom"].lower() == res_tab["nom"].lower()
-                                for p in liste_personnes
-                            ):
-                                liste_personnes.append(res_tab)
-                                if md_file.name not in sources:
-                                    sources.append(md_file.name)
+                        if res_tab_list:
+                            for res_tab in res_tab_list:
+                                if res_tab and res_tab["nom"] and not any(
+                                    p["nom"].lower() == res_tab["nom"].lower()
+                                    for p in liste_personnes
+                                ):
+                                    liste_personnes.append(res_tab)
+                                    if md_file.name not in sources:
+                                        sources.append(md_file.name)
                         continue
 
                     line_lower = line_str.lower()
 
-                    # 2. Détection par mot-clé de rôle (ex: Présentateur / Hôte...)
                     if any(kw in line_lower for kw in mots_cles):
                         moteur_sous_liste = True
                         if ":" in line_str:
                             valeur = line_str.split(":", 1)[1].strip()
                             if valeur and "non précisé" not in valeur.lower():
-                                p = self._analyser_ligne_personne(line_str)
+                                personnes = self._analyser_ligne_personne(
+                                    line_str
+                                )
+                                for p in personnes:
+                                    if p and not any(
+                                        e["nom"].lower() == p["nom"].lower()
+                                        for e in liste_personnes
+                                    ):
+                                        liste_personnes.append(p)
+                                        if md_file.name not in sources:
+                                            sources.append(md_file.name)
+                        continue
+
+                    if moteur_sous_liste:
+                        if line_str.startswith(
+                            ("*", "-")
+                        ) or line.startswith("   *"):
+                            personnes = self._analyser_ligne_personne(line_str)
+                            for p in personnes:
                                 if p and not any(
                                     e["nom"].lower() == p["nom"].lower()
                                     for e in liste_personnes
@@ -392,21 +467,6 @@ class WikiQueryEngine:
                                     liste_personnes.append(p)
                                     if md_file.name not in sources:
                                         sources.append(md_file.name)
-                        continue
-
-                    # 3. Traitement des puces sous la section
-                    if moteur_sous_liste:
-                        if line_str.startswith(
-                            ("*", "-")
-                        ) or line.startswith("   *"):
-                            p = self._analyser_ligne_personne(line_str)
-                            if p and not any(
-                                e["nom"].lower() == p["nom"].lower()
-                                for e in liste_personnes
-                            ):
-                                liste_personnes.append(p)
-                                if md_file.name not in sources:
-                                    sources.append(md_file.name)
                         elif line_str.startswith("##") or line_str.startswith(
                             "---"
                         ):
@@ -439,8 +499,6 @@ class WikiQueryEngine:
 
         return "\n".join(lignes_tab), sources
 
-    # --- TRAITEMENT ET LOGIQUE DE RECHERCHE ---
-
     def _analyser_intention(self, question: str) -> Dict[str, Any]:
         q_lower = question.lower()
 
@@ -454,7 +512,15 @@ class WikiQueryEngine:
             "présentateur",
             "presentateur",
             "participants",
+            "participant",
             "qui participe",
+            "présence",
+            "presence",
+            "présences",
+            "presences",
+            "présents",
+            "presents",
+            "liste",
         ]
         est_demande_liste = any(kw in q_lower for kw in mots_cles_liste)
 
@@ -470,7 +536,11 @@ class WikiQueryEngine:
                 "presente par",
             ]
         )
-        est_qui = q_lower.startswith("qui") and not est_qui_presente and not est_demande_liste
+        est_qui = (
+            q_lower.startswith("qui")
+            and not est_qui_presente
+            and not est_demande_liste
+        )
 
         est_sujet = any(
             kw in q_lower
@@ -506,27 +576,42 @@ class WikiQueryEngine:
         }
 
     def _generer_reponse_personne(self, nom_recherche: str, texte: str) -> str:
-        titre_fonction = ""
+        """Isole spécifiquement la personne recherchée et sa fonction/institution."""
+        mots_nom = [
+            m.lower()
+            for m in re.findall(r"\w+", nom_recherche)
+            if len(m) > 1
+        ]
+        info_personne = ""
         sujets = []
 
         for line in texte.splitlines():
-            if (
-                re.search(
-                    r"Présentateur|Hôte|Intervenant|Speaker", line, re.IGNORECASE
-                )
-                or nom_recherche.lower() in line.lower()
-            ):
-                cleaned_line = self._nettoyer_prefixe_role(line)
-                cleaned_line = self._nettoyer_chaine(cleaned_line)
-                if cleaned_line and not titre_fonction:
-                    titre_fonction = cleaned_line
+            line_clean = self._nettoyer_chaine(line)
+            line_lower = line_clean.lower()
+
+            if mots_nom and all(m in line_lower for m in mots_nom):
+                personnes_extraites = self._analyser_ligne_personne(line_clean)
+                for p in personnes_extraites:
+                    if all(m in p["nom"].lower() for m in mots_nom):
+                        inst = (
+                            f" chez {p['institution']}"
+                            if p["institution"] != "Non précisée"
+                            else ""
+                        )
+                        info_personne = (
+                            f"{p['nom']} — {p['fonction']}{inst}".strip()
+                        )
+                        break
+
+                if not info_personne:
+                    info_personne = self._nettoyer_prefixe_role(line_clean)
 
             elif any(
-                k in line.lower() for k in ["thème", "theme", "sujet", "titre"]
+                k in line_lower for k in ["thème", "theme", "sujet", "titre"]
             ):
                 clean_l = self._nettoyer_chaine(line)
                 clean_l = re.sub(
-                    r"^(thème de la présentation|sujet|titre)\s*:\s*",
+                    r"^(thème de la présentation|sujet principal|sujet|titre)\s*:\s*",
                     "",
                     clean_l,
                     flags=re.IGNORECASE,
@@ -538,15 +623,10 @@ class WikiQueryEngine:
                 ):
                     sujets.append(clean_l)
 
-        titre_fonction_clean = self._nettoyer_prefixe_role(titre_fonction)
-        nom_affiche = (
-            self._nettoyer_prefixe_role(nom_recherche).strip().title()
-        )
-
-        if titre_fonction_clean:
-            res = f"{titre_fonction_clean}\n"
+        if info_personne:
+            res = f"{info_personne}\n"
         else:
-            res = f"{nom_affiche}\n"
+            res = f"{nom_recherche.title()}\n"
 
         if sujets:
             res += f"\nPrésente les thématiques suivantes : {', '.join(sujets[:2])}."
@@ -597,7 +677,6 @@ class WikiQueryEngine:
         """Méthode principale de traitement."""
         intention = self._analyser_intention(question)
 
-        # 1. Traitement des demandes d'invités / personnes
         if intention["est_demande_liste"]:
             tableau_md, sources = self._extraire_invites(
                 filtre_date=intention["filtre_date"],
@@ -612,7 +691,6 @@ class WikiQueryEngine:
             msg = f"Aucun invité trouvé{' pour la date du ' + intention['filtre_date'] if intention['filtre_date'] else ''}."
             return {"answer": msg, "stream": msg, "sources": []}
 
-        # 2. Recherche par pertinence de mots-clés
         mots_a_ignorer = {
             "qui",
             "presente",
@@ -657,13 +735,19 @@ class WikiQueryEngine:
                 if md_file.name in ["index.md", "log.md"]:
                     continue
                 try:
-                    text = md_file.read_text(
-                        encoding="utf-8", errors="ignore"
-                    ).strip()
-                    score = sum(1 for m in mots_cles_q if m in text.lower())
+                    text = md_file.read_text(encoding="utf-8", errors="ignore").strip()
+                    text_lower = text.lower()
+                    score = 0
+
+                    for m in mots_cles_q:
+                        if m in text_lower:
+                            score += 2
+
+                    if mots_cles_q and all(m in text_lower for m in mots_cles_q):
+                        score += 10
 
                     if any(m in md_file.name.lower() for m in mots_cles_q):
-                        score += 3
+                        score += 5
 
                     if score > 0:
                         fiches_pertinentes.append((score, md_file.name, text))
@@ -680,7 +764,6 @@ class WikiQueryEngine:
         sources = [item[1] for item in fiches_pertinentes[:2]]
         terme_recherche = " ".join(mots_cles_q).title()
 
-        # 3. Réponses directes sans appel LLM inutile
         if intention["est_sujet"]:
             apercu_section = self._extraire_section_apercu(extraits[0])
             return {
@@ -717,7 +800,6 @@ class WikiQueryEngine:
             contexte = "\n\n---\n\n".join(extraits)
             prompt = f"Réponds à la question : {question}\n\nContexte :\n{contexte[:4000]}"
 
-        # 4. Fallback LLM / Traitement générique
         try:
             reponse = self._appeler_groq_api(prompt)
         except Exception:
