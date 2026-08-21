@@ -8,8 +8,7 @@
 * **Thème de la présentation :** Management & Transformation digitale
 * **Sujet principal :** Stratégies pour réussir une transformation digitale et l'adoption de l'agilité dans les organisations
 * **Lieu / Cadre :** Non précisé (contexte de conférence ou atelier)
-* **Présentateur / Hôte :**
-  * **Dr. Slim MESFAR** — Agitateur d'innovation organisationnelle, Agile Transformation Coach, Co-fondateur de YET Consulting & YET Innov, Ingénieur et Docteur, Certifié Scrum, SAFe, Lean Agile, PMI-ACP
+* **Présentateur / Hôte / invités / Intervenants :** Slim Msefar -Agitateur d'innovation organisationnelle, Agile Transformation Coach, Co-fondateur de YET Consulting & YET Innov, Ingénieur et Docteur, Certifié Scrum, SAFe, Lean Agile, PMI-ACP
 
 
 ---
