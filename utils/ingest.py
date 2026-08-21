@@ -502,22 +502,50 @@ class IngestPipeline:
         if not file_path.exists():
             return None
 
-        print(f"⚙️ [INGESTION] Traitement de : {file_path.name}")
+        file_name = file_path.name  # <-- FIX 1 : Définition de file_name
+        print(f"⚙️ [INGESTION] Traitement de : {file_name}")
         raw_text = self.process_any_file(file_path, context_tag=file_path.stem)
 
+        # Injection de raw_text dans le prompt pour que le LLM analyse le contenu
         prompt_structuration = f"""Tu es un analyste de sécurité informatique.
 Transforme l'extraction brute ci-dessous en une fiche Wiki structurée et claire en Markdown.
 
-NOM DU FICHIER : {file_path.name}
+--- CONTENU DU DOCUMENT BRUT ---
+{raw_text}
+--------------------------------
 
-CONTENU BRUT EXTRAIT :
-{raw_text[:20000]}
+-- DÉBUT DU MODÈLE A RESPECTER STRICTEMENT ---
 
-Consignes :
-1. Génère un titre principal `# Fiche : {file_path.stem}`.
-2. Identifie clairement les métadonnées clés (Cadre/Événement, Présentateur/Intervenants/Organismes).
-3. Rédige un résumé synthétique des informations clés.
-4. Si des listes d'invités/intervenants sont présentes, rassemble-les dans un tableau Markdown synthétique.
+# 📄 Fiche Synthèse : [Titre principal du sujet]
+
+---
+## ℹ️ Informations Générales
+
+* **Source :** {file_name}
+* **Thème de la présentation :** [Thème global]
+* **Sujet principal :** [Sujet précis]
+* **Lieu / Cadre :** [Lieu, événement, date ou "Non précisé"]
+* **Présentateur / Hôte / invités / Intervenants:** [Nom du présentateur/auteur ou "Non précisé"]
+---
+## 🎯 Aperçu et Résumé Global
+[Un résumé synthétique et clair de l'ensemble du document (environ 150-250 mots). Utilise du gras pour faire ressortir les mots clés.]
+---
+
+## 📌 Sujets Discutés (Résumé Moyen)
+
+### 1. **[Nom du Premier Sous-sujet]**
+* **Développement de l'idée :**
+  [Explication détaillée des points abordés dans ce sujet]
+
+* **Chiffres & Données clés :**
+  * 📊 ou 📈 [Chiffre, métrique, ou donnée importante, ou "Aucun chiffre spécifié"]
+
+* **Citation / Point marquant :**
+  > *"[Citation ou point saillant extrait du texte, s'il y en a une, sinon une phrase clé]"*
+
+(Répète la structure "### N. **[Nom du Sous-sujet]**" pour chaque sous-sujet identifié dans le document)
+
+--- FIN DU MODÈLE ---
 """
 
         try:

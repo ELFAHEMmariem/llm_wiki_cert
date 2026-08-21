@@ -121,6 +121,7 @@ class WikiQueryEngine:
             "west africa",
             "levant",
             "dell technologies",
+            "Réalisé par :",
             "temps forts",
             "temps fort",
         ]
@@ -140,6 +141,7 @@ class WikiQueryEngine:
             "résumé",
             "aperçu",
             "synthèse",
+            "Medini Mehdi",
             "introduction",
             "conclusion",
             "description",
@@ -151,6 +153,7 @@ class WikiQueryEngine:
             "résolution",
             "cryptographie",
             "nécessité",
+            "Réalisé par :",
             "besoin",
             "les machines",
             "le quantique",
