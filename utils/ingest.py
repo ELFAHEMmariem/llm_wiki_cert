@@ -250,7 +250,6 @@ class IngestPipeline:
 
         except Exception as e:
             print(f"[ERREUR] OCR Image Groq : {e}")
-            # Fallback en mode texte si l'API vision échoue
             return f"Erreur lors de l'analyse d'image : {e}"
 
     # =========================================================
